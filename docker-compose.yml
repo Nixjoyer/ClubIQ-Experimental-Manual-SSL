@@ -1,9 +1,9 @@
 services:
 
   # Database Service
-  postgres:
-    image: postgres:16
-    container_name: clubiq_db
+  postgres_manual:
+    image: postgres:latest
+    container_name: manual_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -12,12 +12,17 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_manual:/var/lib/postgresql/data
+      - ./ssl/postgres/postgres.crt:/var/lib/postgresql/data/server.crt:ro
+      - ./ssl/postgres/postgres.key:/var/lib/postgresql/data/server.key:ro
+      - ./ssl/ca/ca.crt:/var/lib/postgresql/data/root.crt:ro
+    networks:
+      - db_internal
 
   # Database Web GUI
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
+  manual_pgadmin:
+    image: elestio/pgadmin:latest
+    container_name: manual_pa
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
@@ -25,36 +30,43 @@ services:
     ports:
       - "5050:80"
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - pgadmin_data_manual:/var/lib/pgadmin
     depends_on:
-      - postgres
+      - postgres_manual
+    networks:
+      - public_net
+      - db_internal
 
   # Backend Service
-  backend:
+  backend_manual:
     build:
       context: .
       dockerfile: Backend/Dockerfile
-    container_name: clubiq_backend
+    container_name: manual_backend
     restart: unless-stopped
     env_file:
       - Backend/.env
     depends_on:
-      - postgres
+      - postgres_manual
     ports:
       - "5000:5000"
     volumes:
       - ./Backend:/app
+      - ./ssl/ca/ca.crt:/etc/ssl/certs/clubiq-ca.crt:ro
     command: flask run --host=0.0.0.0 --port=5000
+    networks:
+      - public_net
+      - db_internal
 
   # Frontend Service
-  frontend:
+  frontend_manual:
     build:
       context: .
       dockerfile: Frontend/Dockerfile
-    container_name: clubiq_frontend
+    container_name: manual_frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      - backend_manual
     env_file:
       - Frontend/.env
     ports:
@@ -62,8 +74,16 @@ services:
     volumes:
       - ./Frontend:/app
       - /app/node_modules
+    networks:
+      - public_net
 
 # Persistent Storage
 volumes:
-  postgres_data:
-  pgadmin_data:
+  postgres_data_manual:
+  pgadmin_data_manual:
+
+# Internal Networks
+networks:
+  public_net:
+  db_internal:
+    internal: true

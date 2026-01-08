@@ -1,10 +1,10 @@
 # Simplifies common Docker commands for development
 
 # Variables
-FRONTEND_ID = $(shell docker compose ps -q frontend)
-BACKEND_ID  = $(shell docker compose ps -q backend)
-POSTGRES_ID = $(shell docker compose ps -q postgres)
-PGADMIN_ID = $(shell docker compose ps -q pgadmin)
+FRONTEND_ID = $(shell docker compose ps -q frontend_manual)
+BACKEND_ID  = $(shell docker compose ps -q backend_manual)
+POSTGRES_ID = $(shell docker compose ps -q postgres_manual)
+PGADMIN_ID = $(shell docker compose ps -q pgadmin_manual)
 
 ########## UTIL ##########
 # Ensures the container exists before using it
@@ -36,7 +36,7 @@ help:
 	@echo "|  make recreate-all       - Force rebuild and recreate all containers                       |"
 	@echo "|  make recreate-frontend  - Force rebuild and recreate the frontend container               |"
 	@echo "|  make recreate-backend   - Force rebuild and recreate the backend container                |"
-	@echo "|  make recreate-postgres  - Force rebuild and recreate the postgres container               |"
+	@echo "|  make recreate-db        - Force rebuild and recreate the postgres container               |"
 	@echo "|  make recreate-pgadmin   - Force rebuild and recreate the pgadmin container                |"
 	@echo "|  make logs-all           - View live logs for all containers                               |"
 	@echo "|  make logs-frontend      - View live logs for frontend container                           |"
@@ -115,41 +115,41 @@ stop-all:
 ########## II. START/STOP FRONTEND CONTAINER ##########
 start-frontend:
 	@echo "Starting frontend..."
-	docker compose up -d frontend
+	docker compose up -d frontend_manual
 
 stop-frontend:
 	@echo "Stopping frontend..."
-	docker compose stop frontend
+	docker compose stop frontend_manual
 
 
 ########## III. START/STOP BACKEND CONTAINER ##########
 start-backend:
 	@echo "Starting backend..."
-	docker compose up -d backend
+	docker compose up -d backend_manual
 
 stop-backend:
 	@echo "Stopping backend..."
-	docker compose stop backend
+	docker compose stop backend_manual
 
 
 ########## IV. START/STOP POSTGRES CONTAINER ##########
 start-db:
 	@echo "Starting postgres..."
-	docker compose up -d db
+	docker compose up -d postgres_manual
 
 stop-db:
 	@echo "Stopping postgres..."
-	docker compose stop db
+	docker compose stop postgres_manual
 
 
 ########## V. START/STOP PGADMIN CONTAINER ##########
 start-pgadmin:
 	@echo "Starting pgadmin..."
-	docker compose up -d pgadmin
+	docker compose up -d pgadmin_manual
 
 stop-pgadmin:
 	@echo "Stopping pgadmin..."
-	docker compose stop pgadmin
+	docker compose stop pgadmin_manual
 
 
 
@@ -171,37 +171,37 @@ recreate-all:
 ########## II. RECREATES FRONTEND CONTAINER ##########
 recreate-frontend:
 	@echo "Recreating frontend..."
-	docker compose stop frontend || true
-	docker compose rm -f frontend || true
-	docker compose build --no-cache frontend
-	docker compose up -d frontend
+	docker compose stop frontend_manual || true
+	docker compose rm -f frontend_manual || true
+	docker compose build --no-cache frontend_manual
+	docker compose up -d frontend_manual
 
 
 ########## III. RECREATES BACKEND CONTAINER ##########
 recreate-backend:
 	@echo "Recreating backend..."
-	docker compose stop backend || true
-	docker compose rm -f backend || true
-	docker compose build --no-cache backend
-	docker compose up -d backend
+	docker compose stop backend_manual || true
+	docker compose rm -f backend_manual || true
+	docker compose build --no-cache backend_manual
+	docker compose up -d backend_manual
 
 
 ########## IV. RECREATES POSTGRES CONTAINER ##########
-recreate-postgres:
+recreate-db:
 	@echo "Recreating postgres..."
-	docker compose stop postgres || true
-	docker compose rm -f postgres || true
-	docker compose build --no-cache postgres
-	docker compose up -d postgres
+	docker compose stop postgres_manual || true
+	docker compose rm -f postgres_manual || true
+	docker compose build --no-cache postgres_manual
+	docker compose up -d postgres_manual
 
 
 ########## V. RECREATES PGADMIN CONTAINER ##########
 recreate-pgadmin:
 	@echo "Recreating pgadmin..."
-	docker compose stop pgadmin || true
-	docker compose rm -f pgadmin || true
-	docker compose build --no-cache pgadmin
-	docker compose up -d pgadmin
+	docker compose stop pgadmin_manual || true
+	docker compose rm -f pgadmin_manual || true
+	docker compose build --no-cache pgadmin_manual
+	docker compose up -d pgadmin_manual
 
 
 
@@ -217,28 +217,28 @@ logs-all:
 
 ########## II. VIEW LOGS (FRONTEND) ##########
 logs-frontend:
-	$(call ensure_exists,$(FRONTEND_ID),frontend)
+	$(call ensure_exists,$(FRONTEND_ID),frontend_manual)
 	@echo "Logs for frontend:"
 	docker logs -f $(FRONTEND_ID)
 
 
 ########## III. VIEW LOGS (BACKEND) ##########
 logs-backend:
-	$(call ensure_exists,$(BACKEND_ID),backend)
+	$(call ensure_exists,$(BACKEND_ID),backend_manual)
 	@echo "Logs for backend:"
 	docker logs -f $(BACKEND_ID)
 
 
 ########## IV. VIEW LOGS (POSTGRES) ##########
 logs-db:
-	$(call ensure_exists,$(POSTGRES_ID),postgres)
+	$(call ensure_exists,$(POSTGRES_ID),postgres_manual)
 	@echo "Logs for postgres:"
 	docker logs -f $(POSTGRES_ID)
 
 
 ########## V. VIEW LOGS (PGADMIN) ##########
 logs-pgadmin:
-	$(call ensure_exists,$(PGADMIN_ID),pgadmin)
+	$(call ensure_exists,$(PGADMIN_ID),pgadmin_manual)
 	@echo "Logs for pgadmin:"
 	docker logs -f $(PGADMIN_ID)
 
@@ -250,28 +250,28 @@ logs-pgadmin:
 
 ########## I. ENTER FRONTEND CONTAINER ##########
 shell-frontend:
-	$(call ensure_exists,$(FRONTEND_ID),frontend)
+	$(call ensure_exists,$(FRONTEND_ID),frontend_manual)
 	@echo "Entering frontend shell..."
 	docker exec -it $(FRONTEND_ID) sh
 
 
 ########## II. ENTER BACKEND CONTAINER ##########
 shell-backend:
-	$(call ensure_exists,$(BACKEND_ID),backend)
+	$(call ensure_exists,$(BACKEND_ID),backend_manual)
 	@echo "Entering backend shell..."
 	docker exec -it $(BACKEND_ID) sh
 
 
 ########## III. ENTER POSTGRES CONTAINER ##########
 shell-db:
-	$(call ensure_exists,$(POSTGRES_ID),postgres)
+	$(call ensure_exists,$(POSTGRES_ID),postgres_manual)
 	@echo "Entering postgres shell..."
 	docker exec -it $(POSTGRES_ID) sh
 
 
 ########## IV. ENTER PGADMIN CONTAINER ##########
 shell-pgadmin:
-	$(call ensure_exists,$(PGADMIN_ID),pgadmin)
+	$(call ensure_exists,$(PGADMIN_ID),pgadmin_manual)
 	@echo "Entering pgadmin shell..."
 	docker exec -it $(PGADMIN_ID) sh
 
@@ -293,7 +293,7 @@ migrate:
 # Prevents conflicts especially if there's a file with a name similar to one of the targets'
 .PHONY: \
 	logs-all logs-frontend logs-backend logs-postgres \
-	recreate-all recreate-frontend recreate-backend recreate-postgres \
+	recreate-all recreate-frontend recreate-backend recreate-db \
 	start-all stop-all start-frontend stop-frontend start-backend stop-backend \
 	start-db stop-db \
 	sh-frontend sh-backend sh-db \
